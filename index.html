@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BudgetPath – AI Budget Planner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f2f6f4;--card:#fff;--tx:#14282b;--mu:#5d7173;--bd:#d6e1de;--ac:#0f766e;--go:#d98e04;--bad:#b3261e;--ok:#1b7f3b;--s2:#e6efec;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1c;--card:#16272a;--tx:#e6f0ee;--mu:#93aaa9;--bd:#26403f;--ac:#3fc3b4;--go:#f2b73c;--bad:#ff8a80;--ok:#6fd48c;--s2:#1d3235}}
+:root[data-theme="dark"]{--bg:#0e1a1c;--card:#16272a;--tx:#e6f0ee;--mu:#93aaa9;--bd:#26403f;--ac:#3fc3b4;--go:#f2b73c;--bad:#ff8a80;--ok:#6fd48c;--s2:#1d3235}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);line-height:1.05;margin:0 0 6px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.1rem;margin:0 0 10px;font-weight:600}
+.sub{color:var(--mu);margin:0 0 20px;max-width:60ch}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--mu);margin:12px 0 4px}
+input[type=number],input[type=text],select{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=range]{width:100%;accent-color:var(--ac)}
+input:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+button,.file{display:inline-block;margin-top:12px;padding:9px 14px;border-radius:8px;border:1px solid var(--ac);background:transparent;color:var(--ac);font:inherit;cursor:pointer}
+button.p{background:var(--ac);color:var(--bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px}
+.k b{display:block;font-size:1.4rem;font-weight:800}.k span{font-size:.8rem;color:var(--mu)}
+.verdict{border-left:5px solid var(--ac);padding:12px 14px;background:var(--s2);border-radius:0 10px 10px 0;margin-bottom:16px}
+.verdict.bad{border-color:var(--bad)}.verdict.ok{border-color:var(--ok)}
+svg{width:100%;height:auto;display:block}
+.grid-l{stroke:var(--bd);stroke-width:1}.ax{fill:var(--mu);font-size:11px;font-family:inherit}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--mu);margin-top:6px}
+.leg i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.bar{display:grid;grid-template-columns:110px 1fr 90px;gap:8px;align-items:center;margin:6px 0;font-size:.9rem}
+.bar div.t{background:var(--s2);border-radius:5px;height:14px;overflow:hidden}.bar div.t>div{height:100%;background:var(--ac)}
+.bar.w div.t>div{background:var(--go)}.bar span:last-child{text-align:right}
+.stack{display:flex;height:26px;border-radius:6px;overflow:hidden;margin:4px 0 12px}
+.stack div{display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;min-width:0;overflow:hidden}
+.alert{padding:9px 12px;border-radius:8px;margin:6px 0;background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--tx);border:1px solid var(--bad);font-size:.9rem}
+.alert.g{background:color-mix(in srgb,var(--ok) 14%,transparent);border-color:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:right}th:first-child,td:first-child{text-align:left}
+.sm{font-size:.8rem;color:var(--mu)}.ov{overflow-x:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two .card{margin-bottom:16px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+.row{display:grid;grid-template-columns:1fr 90px 30px;gap:6px;margin:5px 0;align-items:center;font-size:.85rem}
+.row.inv{grid-template-columns:1fr 76px 52px 72px 26px}
+.row input{padding:7px 6px;min-width:0;width:100%}
+.x{margin:0;padding:2px 0;border-color:var(--bd);color:var(--mu)}
+.btns button{margin-right:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>BudgetPath</h1>
+<p class="sub">Predicts next month's spending with a regression model trained in your browser, then plans a month-by-month path to your savings goal using the 50/30/20 rule.</p>
+<div class="grid">
+<aside>
+<div class="card">
+<h2>Your plan</h2>
+<label for="inc">Monthly income (₹)</label><input id="inc" type="number" min="0" step="500">
+<label for="goal">Savings goal (₹)</label><input id="goal" type="number" min="0" step="1000" value="100000">
+<label for="mon">Months to reach goal: <b id="monv">12</b></label><input id="mon" type="range" min="1" max="36" value="12">
+<label for="cur">Current savings (₹)</label><input id="cur" type="number" min="0" step="1000" value="10000">
+<label for="rate">Savings return (% per year)</label><input id="rate" type="number" min="0" max="20" step="0.5" value="6">
+</div>
+<div class="card">
+<h2>Your data</h2>
+<p class="sm" id="src">Using generated sample data (36 months).</p>
+<label class="file" for="csv" style="margin-top:0;cursor:pointer">Upload CSV</label>
+<input id="csv" type="file" accept=".csv" style="display:none">
+<button id="rst" type="button">Use sample data</button>
+<p class="sm">CSV columns: <code>date,category,amount,income</code> (one row per category per month, e.g. 2025-04-01). Needs at least 6 months.</p>
+</div>
+</aside>
+<main>
+<div class="verdict" id="verdict" aria-live="polite"></div>
+<div class="kpis" id="kpis"></div>
+<div class="two">
+<div class="card"><h2>Monthly needs</h2><div id="needs"></div>
+<div class="btns"><button type="button" id="addn">Add need</button><button type="button" id="fill">Fill from model</button></div>
+<p class="sm">Total needs: <b id="ntot"></b>. Edit the amounts to match your own bills. "Fill from model" copies the model's predicted amounts for matching categories.</p></div>
+<div class="card"><h2>Investments</h2><div id="invs"></div>
+<div class="btns"><button type="button" id="addi">Add investment</button></div>
+<p class="sm">Invested per month: <b id="itot"></b>. Return % is an assumed yearly return, not a guarantee. Stocks and mutual funds can lose value.</p></div>
+</div>
+<div class="card"><h2>Savings path to your goal</h2><div id="pathc"></div>
+<div class="leg"><span><i style="background:var(--ac)"></i>Projected savings</span><span><i style="background:var(--go)"></i>Goal</span></div></div>
+<div class="card"><h2>Budget check (50/30/20)</h2><div id="rule"></div><div id="alerts"></div></div>
+<div class="card"><h2>Predicted spending next month</h2><p class="sm">The model predicts your wants. Needs come from the amounts you entered above.</p><div id="pred"></div></div>
+<div class="card"><h2>Spending history</h2><div id="hist"></div>
+<div class="leg"><span><i style="background:var(--ac)"></i>Total expense</span><span><i style="background:var(--go)"></i>Income</span></div></div>
+<div class="card"><h2>Model performance</h2><div class="ov" id="model"></div>
+<p class="sm" id="mnote"></p></div>
+</main>
+</div>
+</div>
+<script>
+const NEEDS=["rent","emi","utilities","food","transport","health","insurance","groceries","education","loan"];
+const fmt=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+const $=id=>document.getElementById(id);
+let D=null,isSample=true;
+
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function sample(){
+  const r=rng(42),base={Rent:12000,Food:6000,Transport:2500,Utilities:2000,Entertainment:3000,Shopping:3500,EMI:5000,Health:1000};
+  const fixed=["Rent","EMI"],d={labels:[],mn:[],cats:{},income:[]};
+  for(const c in base)d.cats[c]=[];
+  for(let i=0;i<36;i++){
+    const dt=new Date(2023,9+i,1),m=dt.getMonth()+1;
+    d.labels.push(dt.toLocaleString("en",{month:"short",year:"2-digit"}));d.mn.push(m);
+    d.income.push(45000+Math.floor(i/12)*3000+Math.floor(r()*1000-500));
+    for(const c in base){
+      let a=fixed.includes(c)?base[c]:base[c]*(1+.01*i);
+      if((c=="Entertainment"||c=="Shopping")&&m>=10)a*=1.4;
+      if(!fixed.includes(c))a*=1+(r()+r()+r()-1.5)*.16;
+      d.cats[c].push(Math.round(a));
+    }
+  }
+  return d;
+}
+function parseCSV(txt){
+  const L=txt.trim().split(/\r?\n/).map(l=>l.split(",").map(s=>s.trim()));
+  const h=L[0].map(s=>s.toLowerCase()),ix=k=>h.indexOf(k);
+  const [a,b,c,e]=["date","category","amount","income"].map(ix);
+  if([a,b,c,e].includes(-1))throw "Header must be: date,category,amount,income";
+  const M={},cats=new Set();
+  for(const row of L.slice(1)){
+    if(row.length<4)continue;const k=row[a].slice(0,7),amt=parseFloat(row[c]);
+    if(!/^\d{4}-\d{2}$/.test(k)||isNaN(amt))continue;
+    (M[k]=M[k]||{inc:0,c:{}});M[k].inc=Math.max(M[k].inc,parseFloat(row[e])||0);
+    M[k].c[row[b]]=(M[k].c[row[b]]||0)+amt;cats.add(row[b]);
+  }
+  const keys=Object.keys(M).sort();
+  if(keys.length<6)throw "Found only "+keys.length+" valid months. Need at least 6.";
+  const d={labels:[],mn:[],cats:{},income:[]};
+  cats.forEach(k=>d.cats[k]=[]);
+  keys.forEach(k=>{const dt=new Date(+k.slice(0,4),+k.slice(5)-1,1);
+    d.labels.push(dt.toLocaleString("en",{month:"short",year:"2-digit"}));d.mn.push(dt.getMonth()+1);
+    d.income.push(M[k].inc);cats.forEach(c=>d.cats[c].push(M[k].c[c]||0));});
+  return d;
+}
+
+/* ---- ML: ridge linear regression per category, lag features ---- */
+function feat(a,i,m){return[1,a[i-1],a[i-2],a[i-3],(m>=10?1:0)*a[i-1]]}
+function solve(X,y,lam){
+  const n=X[0].length,A=Array.from({length:n},()=>Array(n+1).fill(0));
+  X.forEach((x,r)=>{for(let i=0;i<n;i++){for(let j=0;j<n;j++)A[i][j]+=x[i]*x[j];A[i][n]+=x[i]*y[r]}});
+  for(let i=1;i<n;i++)A[i][i]+=lam;
+  for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;
+    [A[i],A[p]]=[A[p],A[i]];const v=A[i][i]||1e-9;
+    for(let j=i;j<=n;j++)A[i][j]/=v;
+    for(let r=0;r<n;r++)if(r!=i){const f=A[r][i];for(let j=i;j<=n;j++)A[r][j]-=f*A[i][j]}}
+  return A.map(r=>r[n]);
+}
+const dot=(w,x)=>w.reduce((s,v,i)=>s+v*x[i],0);
+function train(d,upto){
+  const W={};
+  for(const c in d.cats){const a=d.cats[c],X=[],y=[];
+    for(let i=3;i<upto;i++){X.push(feat(a,i,d.mn[i]));y.push(a[i])}
+    W[c]=solve(X,y,1);}
+  return W;
+}
+function evaluate(d){
+  const n=d.labels.length,split=Math.max(4,Math.floor(n*.8)),W=train(d,split);
+  let eM=0,eB=0,eA=0,cnt=0,sq=0;
+  for(const c in d.cats){const a=d.cats[c];
+    for(let i=split;i<n;i++){const p=Math.max(0,dot(W[c],feat(a,i,d.mn[i])));
+      eM+=Math.abs(p-a[i]);sq+=(p-a[i])**2;eB+=Math.abs(a[i-1]-a[i]);
+      eA+=Math.abs((a[i-1]+a[i-2]+a[i-3])/3-a[i]);cnt++}}
+  return{mae:eM/cnt,rmse:Math.sqrt(sq/cnt),base:eB/cnt,avg:eA/cnt,test:n-split};
+}
+function predict(d){
+  const n=d.labels.length,W=train(d,n),m=d.mn[n-1]%12+1,out={};
+  for(const c in d.cats){const a=d.cats[c].concat([0]);
+    out[c]=Math.max(0,dot(W[c],feat(a,n,m)))}
+  return out;
+}
+
+/* ---- charts ---- */
+function line(el,series,labels){
+  const w=640,h=250,all=series.flatMap(s=>s.v),mx=Math.max(...all)*1.08||1,mn=Math.min(0,...all);
+  const X=i=>46+i*(w-58)/Math.max(1,labels.length-1),Y=v=>h-26-(v-mn)/(mx-mn||1)*(h-42);
+  const sh=v=>Math.abs(v)>=1e5?(v/1e5).toFixed(1)+"L":Math.abs(v)>=1e3?Math.round(v/1e3)+"k":Math.round(v);
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img">`;
+  for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4;s+=`<line class="grid-l" x1="46" x2="${w-10}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="40" y="${Y(v)+4}" text-anchor="end">${sh(v)}</text>`}
+  const step=Math.ceil(labels.length/7);
+  labels.forEach((l,i)=>{if(i%step==0||i==labels.length-1)s+=`<text class="ax" x="${X(i)}" y="${h-6}" text-anchor="middle">${l}</text>`});
+  series.forEach(se=>{s+=`<path d="${se.v.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join("")}" fill="none" stroke="${se.c}" stroke-width="${se.w||2.5}" ${se.dash?'stroke-dasharray="6 5"':""} stroke-linejoin="round"/>`;
+    if(se.dot){const i=se.v.length-1;s+=`<circle cx="${X(i)}" cy="${Y(se.v[i])}" r="5" fill="${se.c}"/>`}});
+  el.innerHTML=s+"</svg>";
+}
+const isNeed=c=>NEEDS.includes(c.toLowerCase());
+
+function render(){
+  const n=D.labels.length,income=+$("inc").value||0,goal=+$("goal").value||0,months=+$("mon").value,cur=+$("cur").value||0,rate=(+$("rate").value||0)/100;
+  $("monv").textContent=months;
+  const P=predict(D),cats=Object.keys(P);
+  const needs=NEEDL.reduce((s,x)=>s+x.a,0),wc=cats.filter(c=>!isNeed(c)),wants=wc.reduce((s,c)=>s+P[c],0);
+  const total=needs+wants,invest=INV.reduce((s,x)=>s+x.a,0),saving=income-total,cash=Math.max(0,saving-invest),over=invest-saving;
+  const nextLbl=new Date(2000,D.mn[n-1]%12,1).toLocaleString("en",{month:"long"});
+  $("ntot").textContent=fmt(needs);$("itot").textContent=fmt(invest);
+
+  /* path: cash savings + each investment grows at its own return */
+  const r=rate/12,ib=INV.map(()=>0),path=[cur];let cb=cur;
+  for(let m=1;m<=months;m++){cb=cb*(1+r)+cash;INV.forEach((x,i)=>ib[i]=ib[i]*(1+x.r/1200)+x.a);path.push(cb+ib.reduce((a,b)=>a+b,0))}
+  INV.forEach((x,i)=>{const e=$("pv"+i);if(e)e.textContent=fmt(ib[i])});
+  const bal=path[months],g=Math.pow(1+r,months),short=goal-bal,reached=short<=0;
+  const extra=reached?0:(r>0?short*r/(g-1):short/months),hit=path.findIndex(v=>v>=goal);
+
+  const V=$("verdict");
+  if(saving<0){V.className="verdict bad";V.innerHTML=`Needs plus predicted wants come to <b>${fmt(total)}</b>, which is <b>${fmt(-saving)}</b> more than your income. Reduce needs or wants before investing.`}
+  else if(over>0){V.className="verdict bad";V.innerHTML=`You plan to invest <b>${fmt(invest)}</b>/month but only <b>${fmt(saving)}</b> is left after needs and wants. Cut investments by ${fmt(over)} or reduce expenses.`}
+  else if(reached){V.className="verdict ok";V.innerHTML=`You are on track. You reach <b>${fmt(goal)}</b> in about <b>${hit} month${hit>1?"s":""}</b> and hold ${fmt(bal)} after ${months} months.`}
+  else{
+    const cuts=wants>0?wc.map(c=>`${c} −${fmt(extra*P[c]/wants)}`).join(", "):"";
+    V.className="verdict bad";
+    V.innerHTML=`You will have <b>${fmt(bal)}</b> after ${months} months, short of ${fmt(goal)} by ${fmt(short)}. Save about <b>${fmt(extra)}</b> more each month.`+
+      (cuts&&extra<=wants?` Suggested cuts in wants: ${cuts}.`:` Cutting all wants would not be enough, so consider a longer timeline, a lower goal, or fewer needs.`);
+  }
+  $("kpis").innerHTML=[[fmt(total),"Monthly spend (needs + wants)"],[fmt(invest),"Invested per month"],[fmt(cash),"Unallocated cash per month"],[fmt(bal),"Projected in "+months+" months"]].map(k=>`<div class="k"><b>${k[0]}</b><span>${k[1]}</span></div>`).join("");
+
+  line($("pathc"),[{v:path.map(()=>goal),c:"var(--go)",dash:1,w:2},{v:path,c:"var(--ac)",dot:1}],path.map((_,i)=>i==0?"Now":"M"+i));
+
+  const pc=v=>income>0?Math.min(100,Math.max(0,v/income*100)):0;
+  const stack=(a,b,c)=>`<div class="stack"><div style="width:${a}%;background:#0f766e">${a>8?a.toFixed(0)+"%":""}</div><div style="width:${b}%;background:#d98e04">${b>8?b.toFixed(0)+"%":""}</div><div style="width:${c}%;background:#5b6fb5">${c>8?c.toFixed(0)+"%":""}</div></div>`;
+  $("rule").innerHTML=`<div class="sm">Yours: needs ${fmt(needs)} · wants ${fmt(wants)} · savings ${fmt(saving)} (invested ${fmt(Math.min(invest,Math.max(0,saving)))}, cash ${fmt(cash)})</div>`+
+    stack(pc(needs),pc(wants),pc(saving))+
+    `<div class="sm">Ideal 50/30/20: needs ${fmt(income*.5)} · wants ${fmt(income*.3)} · savings ${fmt(income*.2)}</div>`+stack(50,30,20)+
+    `<div class="leg"><span><i style="background:#0f766e"></i>Needs</span><span><i style="background:#d98e04"></i>Wants</span><span><i style="background:#5b6fb5"></i>Savings</span></div>`;
+  const al=[];
+  if(needs>income*.5)al.push(`Needs are ${fmt(needs-income*.5)} over the 50% limit.`);
+  if(wants>income*.3)al.push(`Wants are ${fmt(wants-income*.3)} over the 30% limit.`);
+  if(saving<income*.2)al.push(`Savings are ${fmt(income*.2-saving)} short of the 20% target.`);
+  if(over>0&&saving>=0)al.push(`Investments exceed what is left by ${fmt(over)}.`);
+  $("alerts").innerHTML=al.length?al.map(a=>`<div class="alert">${a}</div>`).join(""):`<div class="alert g">Your spending and investing fit the 50/30/20 rule.</div>`;
+
+  /* prediction bars */
+  const mx=Math.max(...cats.map(c=>P[c]));
+  $("pred").innerHTML=cats.sort((a,b)=>P[b]-P[a]).map(c=>`<div class="bar ${isNeed(c)?"":"w"}"><span>${c}</span><div class="t"><div style="width:${P[c]/mx*100}%"></div></div><span>${fmt(P[c])}</span></div>`).join("")+
+    `<div class="leg"><span><i style="background:var(--ac)"></i>Need</span><span><i style="background:var(--go)"></i>Want</span></div>`;
+
+  /* history */
+  const tot=D.labels.map((_,i)=>Object.values(D.cats).reduce((s,a)=>s+a[i],0));
+  line($("hist"),[{v:D.income,c:"var(--go)",w:2},{v:tot,c:"var(--ac)"}],D.labels);
+
+  /* model table */
+  const E=evaluate(D),imp=(1-E.mae/E.base)*100;
+  $("model").innerHTML=`<table><tr><th>Model</th><th>MAE (₹)</th></tr>
+  <tr><td>Baseline: same as last month</td><td>${Math.round(E.base)}</td></tr>
+  <tr><td>Baseline: 3-month average</td><td>${Math.round(E.avg)}</td></tr>
+  <tr><td><b>Linear regression (ours)</b></td><td><b>${Math.round(E.mae)}</b></td></tr></table>`;
+  $("mnote").textContent=`Time-based split: trained on the earlier months, tested on the last ${E.test} months per category (RMSE ${Math.round(E.rmse)}). Error is ${imp>=0?imp.toFixed(0)+"% lower":Math.abs(imp).toFixed(0)+"% higher"} than the last-month baseline. Features: previous 3 months and a festive-season flag.`;
+}
+
+const NEEDL=[{n:"Rent",a:12000},{n:"EMI / loan",a:8000},{n:"Food & groceries",a:6000},{n:"Utilities (electricity, water, gas)",a:2000},{n:"Transport / fuel",a:2500},{n:"Health & medicine",a:1000},{n:"Insurance premium",a:1500},{n:"School / tuition fees",a:2000},{n:"Mobile & internet",a:800}];
+const INV=[{n:"Fixed deposit (FD)",a:2000,r:7},{n:"Recurring deposit (RD)",a:0,r:6.5},{n:"Mutual fund SIP",a:2000,r:11},{n:"Stocks",a:1000,r:12},{n:"PPF",a:500,r:7.1},{n:"Gold",a:0,r:8}];
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+function editor(el,arr,inv){
+  const f=(x,i,k,t,extra)=>`<input type="${t}" ${extra} value="${esc(x[k])}" data-i="${i}" data-k="${k}" aria-label="${k=="n"?"Name":k=="a"?"Amount per month":"Return percent"}">`;
+  el.innerHTML=`<div class="row sm${inv?" inv":""}"><span>${inv?"Investment":"Need"}</span><span>₹/month</span>${inv?"<span>Return %</span><span>Value later</span>":""}<span></span></div>`+
+    arr.map((x,i)=>`<div class="row${inv?" inv":""}">${f(x,i,"n","text","")}${f(x,i,"a","number",'min="0" step="500"')}${inv?f(x,i,"r","number",'min="0" max="40" step="0.5"')+`<span class="sm" id="pv${i}"></span>`:""}<button type="button" class="x" data-i="${i}" aria-label="Remove">×</button></div>`).join("");
+}
+[["needs",NEEDL,0],["invs",INV,1]].forEach(([id,arr,inv])=>{const el=$(id);
+  el.addEventListener("input",e=>{const t=e.target,k=t.dataset.k;if(!k)return;arr[+t.dataset.i][k]=k=="n"?t.value:(+t.value||0);render()});
+  el.addEventListener("click",e=>{const b=e.target.closest(".x");if(b){arr.splice(+b.dataset.i,1);editor(el,arr,inv);render()}});
+  editor(el,arr,inv);});
+$("addn").onclick=()=>{NEEDL.push({n:"New need",a:0});editor($("needs"),NEEDL,0);render()};
+$("addi").onclick=()=>{INV.push({n:"New investment",a:0,r:8});editor($("invs"),INV,1);render()};
+$("fill").onclick=()=>{const P=predict(D);NEEDL.forEach(x=>{for(const c in P)if(x.n.toLowerCase().includes(c.toLowerCase()))x.a=Math.round(P[c])});editor($("needs"),NEEDL,0);render()};
+
+function load(d,sample){
+  D=d;isSample=sample;const last=d.income[d.income.length-1];
+  $("inc").value=last;
+  $("src").textContent=sample?"Using generated sample data (36 months).":`Using your CSV: ${d.labels.length} months, ${Object.keys(d.cats).length} categories.`;
+  render();
+}
+["inc","goal","mon","cur","rate"].forEach(id=>$(id).addEventListener("input",render));
+$("rst").onclick=()=>load(sample(),true);
+$("csv").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const fr=new FileReader();
+  fr.onload=()=>{try{load(parseCSV(fr.result),false)}catch(x){alert("Could not read CSV: "+x)}};
+  fr.readAsText(f);e.target.value="";
+};
+load(sample(),true);
+</script>
+</body>
+</html>
